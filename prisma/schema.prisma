@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-  moduleFormat    = "cjs"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -66,25 +66,25 @@ enum TipoCigarrillo {
 }
 
 model Turno {
-  id                       Int                    @id @default(autoincrement())
-  fecha                    DateTime
-  usuario                  String
-  cajaInicial              Decimal
-  cajaFinal                Decimal?
-  retiroEfectivo           Decimal @default(0)
-  totalSobres              Decimal @default(0)
-  estado                   TurnoEstado            @default(ABIERTO)
-  observaciones            String?
-  movimientos              Movimiento[]
-  sobresTurno              SobreTurno[]
-  sobresHistorial          SobreHistorial[]
-  stockTurno               StockItemTurno[]
-  stockHistorial           StockHistorial[]
-  prestamosEnvaseCreados   PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCreacion")
-  prestamosEnvaseCerrados  PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCierre")
-  movimientosCigarrillos   MovimientoCigarrillo[]
-  createdAt                DateTime               @default(now())
-  updatedAt                DateTime               @updatedAt
+  id                      Int                    @id @default(autoincrement())
+  fecha                   DateTime
+  usuario                 String
+  cajaInicial             Decimal
+  cajaFinal               Decimal?
+  retiroEfectivo          Decimal                @default(0)
+  totalSobres             Decimal                @default(0)
+  estado                  TurnoEstado            @default(ABIERTO)
+  observaciones           String?
+  movimientos             Movimiento[]
+  sobresTurno             SobreTurno[]
+  sobresHistorial         SobreHistorial[]
+  stockTurno              StockItemTurno[]
+  stockHistorial          StockHistorial[]
+  prestamosEnvaseCreados  PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCreacion")
+  prestamosEnvaseCerrados PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCierre")
+  movimientosCigarrillos  MovimientoCigarrillo[]
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
 
   @@index([fecha])
   @@index([estado, fecha])
@@ -196,19 +196,19 @@ model StockHistorial {
 }
 
 model PrestamoEnvase {
-  id              Int                   @id @default(autoincrement())
+  id              Int                  @id @default(autoincrement())
   nombrePersona   String
   observaciones   String?
-  cantidadEnvases Int                   @default(1)
+  cantidadEnvases Int                  @default(1)
   montoPrestamo   Decimal?
   estado          PrestamoEnvaseEstado @default(PENDIENTE)
   turnoCreacionId Int?
-  turnoCreacion   Turno?                @relation("PrestamoEnvaseTurnoCreacion", fields: [turnoCreacionId], references: [id], onDelete: Restrict)
+  turnoCreacion   Turno?               @relation("PrestamoEnvaseTurnoCreacion", fields: [turnoCreacionId], references: [id], onDelete: Restrict)
   turnoCierreId   Int?
-  turnoCierre     Turno?                @relation("PrestamoEnvaseTurnoCierre", fields: [turnoCierreId], references: [id], onDelete: Restrict)
+  turnoCierre     Turno?               @relation("PrestamoEnvaseTurnoCierre", fields: [turnoCierreId], references: [id], onDelete: Restrict)
   fechaCierre     DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@index([estado])
   @@index([turnoCreacionId])
@@ -219,15 +219,15 @@ model PrestamoEnvase {
 }
 
 model MovimientoCigarrillo {
-  id              Int                       @id @default(autoincrement())
-  turnoId         Int
-  turno           Turno                     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
-  tipoMovimiento  MovimientoCigarrilloTipo
-  tipoCigarrillo  TipoCigarrillo
-  medioPago       MedioPago
-  cantidad        Int                       @default(1)
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
+  id             Int                      @id @default(autoincrement())
+  turnoId        Int
+  turno          Turno                    @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  tipoMovimiento MovimientoCigarrilloTipo
+  tipoCigarrillo TipoCigarrillo
+  medioPago      MedioPago
+  cantidad       Int                      @default(1)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
 
   @@index([turnoId])
   @@index([tipoCigarrillo])
