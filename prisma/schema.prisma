@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,6 +8,225 @@ datasource db {
   provider = "sqlite"
 }
 
+enum TurnoEstado {
+  ABIERTO
+  CERRADO
+  ANULADO
+}
+
+enum MovimientoTipo {
+  INGRESO
+  EGRESO
+  AJUSTE
+}
+
+enum MovimientoCategoria {
+  VENTA
+  RETIRO_EFECTIVO
+  GASTO
+  SOBRE
+  STOCK
+  PRESTAMO_ENVASE
+  CIGARRILLOS
+  OTRO
+}
+
+enum TipoSobre {
+  RECARGAS
+  CIGARRILLOS
+  JUGUETES
+}
+
+enum PrestamoEnvaseEstado {
+  PENDIENTE
+  DEVUELTO
+  CANCELADO
+}
+
+enum MovimientoCigarrilloTipo {
+  VENTA
+  REPOSICION
+}
+
+enum MedioPago {
+  EFECTIVO
+  TRANSFERENCIA
+}
+
+enum CategoriaStock {
+  CIGARRILLOS
+  JUGUETES
+  OTRO
+}
+
+enum TipoCigarrillo {
+  MARLBORO_CRAFTED
+  RED_POINT
+  RED_POINT_SIX
+}
+
 model Turno {
-  id        Int      @id @default(autoincrement())
+  id                       Int                    @id @default(autoincrement())
+  fecha                    DateTime
+  usuario                  String
+  cajaInicial              Decimal
+  cajaFinal                Decimal @default(0)
+  retiroEfectivo           Decimal @default(0)
+  totalSobres              Decimal @default(0)
+  estado                   TurnoEstado            @default(ABIERTO)
+  observaciones            String?
+  movimientos              Movimiento[]
+  sobresTurno              SobreTurno[]
+  sobresHistorial          SobreHistorial[]
+  stockTurno               StockItemTurno[]
+  stockHistorial           StockHistorial[]
+  prestamosEnvase          PrestamoEnvase[]
+  movimientosCigarrillos   MovimientoCigarrillo[]
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  @@index([fecha])
+  @@index([estado, fecha])
+}
+
+model Movimiento {
+  id          Int                 @id @default(autoincrement())
+  turnoId     Int
+  turno       Turno               @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  tipo        MovimientoTipo
+  categoria   MovimientoCategoria
+  monto       Decimal
+  descripcion String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([turnoId])
+  @@index([tipo])
+  @@index([categoria])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model SobreTurno {
+  id           Int       @id @default(autoincrement())
+  turnoId      Int
+  turno        Turno     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  tipoSobre    TipoSobre
+  saldoInicial Decimal
+  saldoFinal   Decimal   @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([turnoId, tipoSobre])
+  @@index([turnoId])
+}
+
+model SobreActual {
+  id          Int       @id @default(autoincrement())
+  tipoSobre   TipoSobre @unique
+  montoActual Decimal
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SobreHistorial {
+  id            Int       @id @default(autoincrement())
+  turnoId       Int
+  turno         Turno     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  tipoSobre     TipoSobre
+  montoAnterior Decimal
+  montoNuevo    Decimal
+  diferencia    Decimal
+  observaciones String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([turnoId])
+  @@index([tipoSobre])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model StockItem {
+  id             Int              @id @default(autoincrement())
+  nombre         TipoCigarrillo   @unique
+  categoria      CategoriaStock   @default(CIGARRILLOS)
+  cantidadActual Int
+  activo         Boolean          @default(true)
+  turnos         StockItemTurno[]
+  historial      StockHistorial[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model StockItemTurno {
+  id              Int       @id @default(autoincrement())
+  turnoId         Int
+  turno           Turno     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  stockItemId     Int
+  stockItem       StockItem @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
+  cantidadInicial Int
+  cantidadFinal   Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([turnoId, stockItemId])
+  @@index([turnoId])
+  @@index([stockItemId])
+}
+
+model StockHistorial {
+  id               Int       @id @default(autoincrement())
+  turnoId          Int
+  turno            Turno     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  stockItemId      Int
+  stockItem        StockItem @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
+  cantidadAnterior Int
+  cantidadNueva    Int
+  diferencia       Int
+  observaciones    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([turnoId])
+  @@index([stockItemId])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model PrestamoEnvase {
+  id              Int                   @id @default(autoincrement())
+  nombrePersona   String
+  observaciones   String?
+  cantidadEnvases Int                   @default(1)
+  montoPrestamo   Decimal?
+  estado          PrestamoEnvaseEstado @default(PENDIENTE)
+  turnoId         Int?
+  turno           Turno?                @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([estado])
+  @@index([turnoId])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model MovimientoCigarrillo {
+  id              Int                       @id @default(autoincrement())
+  turnoId         Int
+  turno           Turno                     @relation(fields: [turnoId], references: [id], onDelete: Restrict)
+  tipoMovimiento  MovimientoCigarrilloTipo
+  tipoCigarrillo  TipoCigarrillo
+  medioPago       MedioPago
+  cantidad        Int                       @default(1)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  @@index([turnoId])
+  @@index([tipoCigarrillo])
+  @@index([tipoMovimiento])
+  @@index([medioPago])
+  @@index([createdAt])
+  @@index([updatedAt])
 }
