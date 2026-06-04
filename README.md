@@ -4,7 +4,7 @@
 
 # Caja Kiosco Backend
 
-Backend desarrollado para administrar y controlar la operación diaria de un kiosco mediante el registro de movimientos de caja por turno.
+Backend desarrollado para registrar y controlar los movimientos de caja de un kiosco, permitiendo llevar un seguimiento organizado de cada turno de trabajo.
 
 ## Objetivo
 
@@ -12,7 +12,16 @@ Este proyecto surge para resolver una necesidad real de un kiosco familiar, dond
 
 El sistema está enfocado en registrar y consultar movimientos operativos, facilitando el control diario de la caja y la trazabilidad de las operaciones realizadas durante cada turno.
 
-## Funcionalidades previstas
+## Funcionalidades
+
+### Implementadas
+
+- Configuración inicial de NestJS
+- Configuración de Prisma ORM
+- Definición inicial del esquema de base de datos
+- Creación e inicialización del módulo de turnos
+
+### En desarrollo
 
 - Apertura de turnos
 - Cierre de turnos
@@ -21,7 +30,6 @@ El sistema está enfocado en registrar y consultar movimientos operativos, facil
 - Registro de recargas
 - Control de stock de cigarrillos
 - Historial de movimientos por turno
-- Consultas y reportes operativos
 
 ## Tecnologías
 
@@ -38,34 +46,11 @@ El sistema está enfocado en registrar y consultar movimientos operativos, facil
 - GitHub
 - Postman
 
-## Arquitectura
-
-El proyecto utiliza una arquitectura modular basada en NestJS.
-
-Cada dominio del negocio se implementa mediante módulos independientes para facilitar el mantenimiento y la escalabilidad futura.
-
-Ejemplos:
-
-- Turnos
-- Transferencias
-- Gastos
-- Recargas
-- Stock de cigarrillos
-
 ## Estado del proyecto
 
 🚧 En desarrollo activo.
 
 Actualmente se encuentra en construcción la primera versión funcional del sistema.
-
-## Próximos pasos
-
-- Implementar lógica de turnos
-- Implementar transferencias
-- Implementar gastos
-- Implementar recargas
-- Implementar consultas y reportes
-- Desarrollar interfaz web para operadores
 
 ## Autor
 
