@@ -20,7 +20,4 @@ export class CreateTurnoDto {
   @IsOptional()
   @MaxLength(500)
   observaciones?: string;
-
-  @IsOptional()
-  estado?: 'ABIERTO' | 'CERRADO' | 'ANULADO';
 }

@@ -21,7 +21,7 @@ enum MovimientoTipo {
 }
 
 enum MovimientoCategoria {
-  VENTA
+  TRANSFERENCIA
   RETIRO_EFECTIVO
   GASTO
   SOBRE
@@ -66,25 +66,26 @@ enum TipoCigarrillo {
 }
 
 model Turno {
-  id                      Int                    @id @default(autoincrement())
-  fecha                   DateTime
-  usuario                 String
-  cajaInicial             Decimal
-  cajaFinal               Decimal?
-  retiroEfectivo          Decimal                @default(0)
-  totalSobres             Decimal                @default(0)
-  estado                  TurnoEstado            @default(ABIERTO)
-  observaciones           String?
-  movimientos             Movimiento[]
-  sobresTurno             SobreTurno[]
-  sobresHistorial         SobreHistorial[]
-  stockTurno              StockItemTurno[]
-  stockHistorial          StockHistorial[]
-  prestamosEnvaseCreados  PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCreacion")
-  prestamosEnvaseCerrados PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCierre")
-  movimientosCigarrillos  MovimientoCigarrillo[]
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
+  id                        Int                    @id @default(autoincrement())
+  fecha                     DateTime
+  usuario                   String
+  cajaInicial               Decimal
+  cajaFinal                 Decimal?
+  retiroEfectivo            Decimal                @default(0)
+  totalTransferenciasCierre Decimal                @default(0)
+  totalSobres               Decimal                @default(0)
+  estado                    TurnoEstado            @default(ABIERTO)
+  observaciones             String?
+  movimientos               Movimiento[]
+  sobresTurno               SobreTurno[]
+  sobresHistorial           SobreHistorial[]
+  stockTurno                StockItemTurno[]
+  stockHistorial            StockHistorial[]
+  prestamosEnvaseCreados    PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCreacion")
+  prestamosEnvaseCerrados   PrestamoEnvase[]       @relation("PrestamoEnvaseTurnoCierre")
+  movimientosCigarrillos    MovimientoCigarrillo[]
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
 
   @@index([fecha])
   @@index([estado, fecha])
@@ -96,6 +97,7 @@ model Movimiento {
   turno       Turno               @relation(fields: [turnoId], references: [id], onDelete: Restrict)
   tipo        MovimientoTipo
   categoria   MovimientoCategoria
+  medioPago   MedioPago
   monto       Decimal
   descripcion String?
   createdAt   DateTime            @default(now())
