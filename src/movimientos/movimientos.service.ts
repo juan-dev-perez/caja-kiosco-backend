@@ -1,26 +1,84 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateMovimientoDto } from './dto/create-movimiento.dto';
 import { UpdateMovimientoDto } from './dto/update-movimiento.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { MovimientoCategoria, MovimientoTipo } from '../../generated/prisma/enums';
+
+type FindAllMovimientosFilters = {
+  turnoId?: number;
+  tipo?: MovimientoTipo;
+  categoria?: MovimientoCategoria;
+};
 
 @Injectable()
 export class MovimientosService {
-  create(createMovimientoDto: CreateMovimientoDto) {
-    return 'This action adds a new movimiento';
+  constructor(private readonly prismaService: PrismaService) {}
+
+  private async findMovimientoOrThrow(id: number) {
+    const movimiento = await this.prismaService.movimiento.findUnique({
+      where: { id },
+    });
+
+    if (!movimiento) {
+      throw new NotFoundException(`Movimiento con id ${id} no encontrado`);
+    }
+
+    return movimiento;
   }
 
-  findAll() {
-    return `This action returns all movimientos`;
+  async create(createMovimientoDto: CreateMovimientoDto) {
+    return this.prismaService.movimiento.create({
+      data: {
+        turnoId: createMovimientoDto.turnoId,
+        tipo: createMovimientoDto.tipo,
+        categoria: createMovimientoDto.categoria,
+        medioPago: createMovimientoDto.medioPago,
+        monto: createMovimientoDto.monto,
+        descripcion: createMovimientoDto.descripcion,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movimiento`;
+  async findAll(filters: FindAllMovimientosFilters = {}) {
+    const { turnoId, tipo, categoria } = filters;
+
+    return this.prismaService.movimiento.findMany({
+      where: {
+        ...(turnoId !== undefined ? { turnoId } : {}),
+        ...(tipo !== undefined ? { tipo } : {}),
+        ...(categoria !== undefined ? { categoria } : {}),
+      },
+    });
   }
 
-  update(id: number, updateMovimientoDto: UpdateMovimientoDto) {
-    return `This action updates a #${id} movimiento`;
+  async findTransfersByTurnoId(turnoId: number) {
+    return this.prismaService.movimiento.findMany({
+      where: {
+        turnoId,
+        tipo: 'INGRESO',
+        categoria: 'TRANSFERENCIA',
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movimiento`;
+  async findOne(id: number) {
+    return this.findMovimientoOrThrow(id);
+  }
+
+  async update(id: number, updateMovimientoDto: UpdateMovimientoDto) {
+    await this.findMovimientoOrThrow(id);
+
+    return this.prismaService.movimiento.update({
+      where: { id },
+      data: updateMovimientoDto,
+    });
+  }
+
+  async remove(id: number) {
+    await this.findMovimientoOrThrow(id);
+
+    return this.prismaService.movimiento.delete({
+      where: { id },
+    });
   }
 }
