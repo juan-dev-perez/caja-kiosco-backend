@@ -28,13 +28,29 @@ export class TurnosService {
   }
 
   async create(createTurnoDto: CreateTurnoDto) {
-    return this.prismaService.turno.create({
-      data: {
-        fecha: new Date(createTurnoDto.fecha),
-        usuario: createTurnoDto.usuario,
-        cajaInicial: createTurnoDto.cajaInicial,
-        observaciones: createTurnoDto.observaciones,
-      },
+    return this.prismaService.$transaction(async (tx) => {
+      const turno = await tx.turno.create({
+        data: {
+          fecha: new Date(createTurnoDto.fecha),
+          usuario: createTurnoDto.usuario,
+          cajaInicial: createTurnoDto.cajaInicial,
+          observaciones: createTurnoDto.observaciones,
+        },
+      });
+
+      const sobresActuales = await tx.sobreActual.findMany();
+
+      if (sobresActuales.length > 0) {
+        await tx.sobreTurno.createMany({
+          data: sobresActuales.map((sobre) => ({
+            turnoId: turno.id,
+            tipoSobre: sobre.tipoSobre,
+            saldoInicial: sobre.montoActual,
+          })),
+        });
+      }
+
+      return turno;
     });
   }
 
@@ -64,23 +80,71 @@ export class TurnosService {
     const turno = await this.findTurnoOrThrow(id);
 
     if (turno.estado !== TurnoEstado.ABIERTO) {
-      throw new BadRequestException('Este turno ya se encuentra cerrado, solo se pueden cerrar turnos abiertos');
+      throw new BadRequestException(
+        'Este turno ya se encuentra cerrado, solo se pueden cerrar turnos abiertos',
+      );
     }
 
+    return this.prismaService.$transaction(async (tx) => {
     const totalTransferenciasCierre =
       await this.movimientosService.findTransfersByTurnoId(id);
 
-    return this.prismaService.turno.update({
+    const sobresTurno = await tx.sobreTurno.findMany({
+      where: { turnoId: id },
+    });
+
+    const totalSobres = sobresTurno.reduce((acc, sobre) => {
+      return acc + Number(sobre.saldoInicial);
+    }, 0);
+
+    await Promise.all(
+      sobresTurno.map((sobre) =>
+        tx.sobreTurno.update({
+          where: { id: sobre.id },
+          data: {
+            saldoFinal: sobre.saldoInicial,
+          },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      sobresTurno.map((sobre) =>
+        tx.sobreActual.update({
+          where: { tipoSobre: sobre.tipoSobre },
+          data: {
+            montoActual: sobre.saldoInicial,
+          },
+        }),
+      ),
+    );
+
+    return tx.turno.update({
       where: { id },
       data: {
         cajaFinal: cerrarTurnoDto.cajaFinal,
         retiroEfectivo: cerrarTurnoDto.retiroEfectivo,
         totalTransferenciasCierre,
-        totalSobres: cerrarTurnoDto.totalSobres,
+        totalSobres,
         estado: TurnoEstado.CERRADO,
-        observaciones: cerrarTurnoDto.observaciones,
       },
     });
+  });
+
+    // const totalTransferenciasCierre =
+    //   await this.movimientosService.findTransfersByTurnoId(id);
+
+    // return this.prismaService.turno.update({
+    //   where: { id },
+    //   data: {
+    //     cajaFinal: cerrarTurnoDto.cajaFinal,
+    //     retiroEfectivo: cerrarTurnoDto.retiroEfectivo,
+    //     totalTransferenciasCierre,
+    //     // totalSobres: cerrarTurnoDto.totalSobres,
+    //     estado: TurnoEstado.CERRADO,
+    //     observaciones: cerrarTurnoDto.observaciones,
+    //   },
+    // });
   }
 
   async remove(id: number) {

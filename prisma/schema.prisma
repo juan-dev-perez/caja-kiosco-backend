@@ -14,21 +14,12 @@ enum TurnoEstado {
   ANULADO
 }
 
-enum MovimientoTipo {
-  INGRESO
-  EGRESO
-  AJUSTE
-}
-
 enum MovimientoCategoria {
-  TRANSFERENCIA
-  RETIRO_EFECTIVO
-  GASTO
-  SOBRE
-  STOCK
-  PRESTAMO_ENVASE
+  RECARGAS
   CIGARRILLOS
-  OTRO
+  JUGUETES
+  TRANSFERENCIAS
+  GASTOS
 }
 
 enum TipoSobre {
@@ -95,16 +86,13 @@ model Movimiento {
   id          Int                 @id @default(autoincrement())
   turnoId     Int
   turno       Turno               @relation(fields: [turnoId], references: [id], onDelete: Restrict)
-  tipo        MovimientoTipo
   categoria   MovimientoCategoria
-  medioPago   MedioPago
   monto       Decimal
   descripcion String?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 
   @@index([turnoId])
-  @@index([tipo])
   @@index([categoria])
   @@index([createdAt])
   @@index([updatedAt])

@@ -11,10 +11,7 @@ import {
   ParseEnumPipe,
 } from '@nestjs/common';
 import { MovimientosService } from './movimientos.service';
-import {
-  MovimientoCategoria,
-  MovimientoTipo,
-} from '../../generated/prisma/enums';
+import { MovimientoCategoria } from '../../generated/prisma/enums';
 import { CreateMovimientoDto, UpdateMovimientoDto } from './dto';
 
 @Controller('movimientos')
@@ -29,15 +26,13 @@ export class MovimientosController {
   @Get()
   findAll(
     @Query('turnoId', new ParseIntPipe({ optional: true })) turnoId?: number,
-    @Query('tipo', new ParseEnumPipe(MovimientoTipo, { optional: true }))
-    tipo?: MovimientoTipo,
     @Query(
       'categoria',
       new ParseEnumPipe(MovimientoCategoria, { optional: true }),
     )
     categoria?: MovimientoCategoria,
   ) {
-    return this.movimientosService.findAll({ turnoId, tipo, categoria });
+    return this.movimientosService.findAll({ turnoId, categoria });
   }
 
   @Get(':id')
@@ -46,11 +41,9 @@ export class MovimientosController {
   }
 
   @Get(':turnoId/total-transferencias')
-  findTransfersByTurnoId(
-    @Param('turnoId', ParseIntPipe) turnoId: number,
-  ) {
+  findTransfersByTurnoId(@Param('turnoId', ParseIntPipe) turnoId: number) {
     return this.movimientosService.findTransfersByTurnoId(turnoId);
-  } 
+  }
 
   @Patch(':id')
   update(

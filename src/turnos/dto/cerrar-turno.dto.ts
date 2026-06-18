@@ -14,12 +14,6 @@ export class CerrarTurnoDto {
   @IsNotEmpty()
   retiroEfectivo!: number;
 
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  totalSobres?: number;
-
   @IsString()
   @IsOptional()
   @MaxLength(500)
