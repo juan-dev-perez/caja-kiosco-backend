@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
 import { TurnosService } from './turnos.service';
-import { CreateTurnoDto } from './dto/create-turno.dto';
-import { UpdateTurnoDto } from './dto/update-turno.dto';
+import { CerrarTurnoDto, CreateTurnoDto, UpdateTurnoDto } from './dto';
 
 @Controller('turnos')
 export class TurnosController {
@@ -25,6 +24,11 @@ export class TurnosController {
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() updateTurnoDto: UpdateTurnoDto) {
     return this.turnosService.update(id, updateTurnoDto);
+  }
+
+  @Patch(':id/cerrar-turno')
+  cerrarTurno(@Param('id', ParseIntPipe) id: number, @Body() cerrarTurnoDto: CerrarTurnoDto) {
+    return this.turnosService.cerrarTurno(id, cerrarTurnoDto);
   }
 
   @Delete(':id')

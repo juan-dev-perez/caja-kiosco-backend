@@ -1,11 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateTurnoDto } from './dto/create-turno.dto';
-import { UpdateTurnoDto } from './dto/update-turno.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CerrarTurnoDto, CreateTurnoDto, UpdateTurnoDto } from './dto';
+import { MovimientosService } from '../movimientos/movimientos.service';
+import { TurnoEstado } from '../../generated/prisma/enums';
 
 @Injectable()
 export class TurnosService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly movimientosService: MovimientosService,
+  ) {}
 
   private async findTurnoOrThrow(id: number) {
     const turno = await this.prismaService.turno.findUnique({
@@ -52,13 +60,36 @@ export class TurnosService {
     });
   }
 
+  async cerrarTurno(id: number, cerrarTurnoDto: CerrarTurnoDto) {
+    const turno = await this.findTurnoOrThrow(id);
+
+    if (turno.estado !== TurnoEstado.ABIERTO) {
+      throw new BadRequestException('Este turno ya se encuentra cerrado, solo se pueden cerrar turnos abiertos');
+    }
+
+    const totalTransferenciasCierre =
+      await this.movimientosService.findTransfersByTurnoId(id);
+
+    return this.prismaService.turno.update({
+      where: { id },
+      data: {
+        cajaFinal: cerrarTurnoDto.cajaFinal,
+        retiroEfectivo: cerrarTurnoDto.retiroEfectivo,
+        totalTransferenciasCierre,
+        totalSobres: cerrarTurnoDto.totalSobres,
+        estado: TurnoEstado.CERRADO,
+        observaciones: cerrarTurnoDto.observaciones,
+      },
+    });
+  }
+
   async remove(id: number) {
     await this.findTurnoOrThrow(id);
 
     return this.prismaService.turno.update({
       where: { id },
       data: {
-        estado: 'ANULADO',
+        estado: TurnoEstado.ANULADO,
       },
     });
   }

@@ -11,12 +11,11 @@ import {
   ParseEnumPipe,
 } from '@nestjs/common';
 import { MovimientosService } from './movimientos.service';
-import { CreateMovimientoDto } from './dto/create-movimiento.dto';
-import { UpdateMovimientoDto } from './dto/update-movimiento.dto';
 import {
   MovimientoCategoria,
   MovimientoTipo,
 } from '../../generated/prisma/enums';
+import { CreateMovimientoDto, UpdateMovimientoDto } from './dto';
 
 @Controller('movimientos')
 export class MovimientosController {
@@ -45,6 +44,13 @@ export class MovimientosController {
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.movimientosService.findOne(id);
   }
+
+  @Get(':turnoId/total-transferencias')
+  findTransfersByTurnoId(
+    @Param('turnoId', ParseIntPipe) turnoId: number,
+  ) {
+    return this.movimientosService.findTransfersByTurnoId(turnoId);
+  } 
 
   @Patch(':id')
   update(

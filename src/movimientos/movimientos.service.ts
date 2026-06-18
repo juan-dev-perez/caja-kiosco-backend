@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateMovimientoDto } from './dto/create-movimiento.dto';
-import { UpdateMovimientoDto } from './dto/update-movimiento.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { MovimientoCategoria, MovimientoTipo } from '../../generated/prisma/enums';
+import {
+  MovimientoCategoria,
+  MovimientoTipo,
+} from '../../generated/prisma/enums';
+import { CreateMovimientoDto, UpdateMovimientoDto } from './dto';
 
 type FindAllMovimientosFilters = {
   turnoId?: number;
@@ -52,13 +54,18 @@ export class MovimientosService {
   }
 
   async findTransfersByTurnoId(turnoId: number) {
-    return this.prismaService.movimiento.findMany({
+    const result = await this.prismaService.movimiento.aggregate({
       where: {
         turnoId,
         tipo: 'INGRESO',
         categoria: 'TRANSFERENCIA',
       },
+      _sum: {
+        monto: true,
+      },
     });
+
+    return result._sum.monto?.toNumber() ?? 0;
   }
 
   async findOne(id: number) {
