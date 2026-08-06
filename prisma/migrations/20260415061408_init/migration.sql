@@ -1,4 +1,0 @@
--- CreateTable
-CREATE TABLE "Turno" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
-);
